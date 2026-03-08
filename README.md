@@ -174,8 +174,8 @@ acko-mer-ai/
 
 ## ⚠️ Important Notes
 
-- Never commit your `.env` file — it's already in `.gitignore`
-- Medical data is sensitive — keep your repository **private**
+
+- Medical data is sensitive — keep your repository **private** , the data thats currently being used is dummy data
 - Groq free tier has rate limits — suitable for development and small clinics
 
 ---
