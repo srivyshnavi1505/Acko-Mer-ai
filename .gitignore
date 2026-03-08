@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Environment variables - NEVER push these
+.env
+.env.local
+.env.production
+
+# Logs
+logs/
+*.log
+
+# Uploads (audio files, user data)
+uploads/
+backend/uploads/
+
+# Build outputs
+build/
+dist/
+frontend/build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
