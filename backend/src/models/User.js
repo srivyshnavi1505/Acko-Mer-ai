@@ -5,8 +5,15 @@ const UserSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true, maxlength: 100 },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   password: { type: String, required: true, minlength: 6, select: false },
-  role: { type: String, enum: ['doctor', 'admin', 'viewer'], default: 'doctor' },
+  role: { type: String, enum: ['doctor', 'patient', 'admin', 'viewer'], default: 'doctor' },
   specialization: { type: String, trim: true },
+  licenseNumber: { type: String, trim: true },
+  clinicName: { type: String, trim: true },
+  phone: { type: String, trim: true },
+
+  // For patient role — link to Patient profile
+  patientProfileId: { type: mongoose.Schema.Types.ObjectId, ref: 'Patient' },
+
   isActive: { type: Boolean, default: true },
   refreshTokens: [{ token: String, createdAt: { type: Date, default: Date.now } }],
   lastLogin: Date,

@@ -8,7 +8,6 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Request interceptor - add auth token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -18,15 +17,12 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor - handle auth errors
 api.interceptors.response.use(
   (response) => response.data,
   (error) => {
     const message = error.response?.data?.message || error.message || 'Something went wrong';
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-    
-      // The AuthContext will handle redirecting to login when user is null
     }
     return Promise.reject(new Error(message));
   }
@@ -76,6 +72,18 @@ export const summaryAPI = {
   getById: (id) => api.get(`/summaries/${id}`),
   update: (id, data) => api.patch(`/summaries/${id}`, data),
   export: (id, format) => api.get(`/summaries/${id}/export/${format}`, { responseType: 'blob' }),
+};
+
+// Patients
+export const patientAPI = {
+  create: (data) => api.post('/patients', data),
+  getAll: (params) => api.get('/patients', { params }),
+  getById: (id) => api.get(`/patients/${id}`),
+  getWithHistory: (id) => api.get(`/patients/${id}/history`),
+  update: (id, data) => api.patch(`/patients/${id}`, data),
+  delete: (id) => api.delete(`/patients/${id}`),
+  search: (q) => api.get('/patients/search', { params: { q } }),
+  getStats: () => api.get('/patients/stats'),
 };
 
 export default api;

@@ -17,7 +17,12 @@ const sessionRoutes = require('./routes/sessions');
 const transcriptionRoutes = require('./routes/transcriptions');
 const summaryRoutes = require('./routes/summaries');
 
+const patientRoutes = require('./routes/patients');
 const app = express();
+
+
+
+
 
 // Trust proxy (for rate limiting behind nginx)
 app.set('trust proxy', 1);
@@ -76,6 +81,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/transcribe', transcriptionRoutes);
 app.use('/api/summaries', summaryRoutes);
+app.use('/api/patients', patientRoutes);
 
 // 404 handler
 app.use('*', (req, res, next) => {
