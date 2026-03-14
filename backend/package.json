@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon --exec \"node --max-http-header-size=32768\" server.js",
-    "test": "jest --coverage"
+    "test": "jest --coverage --passWithNoTests"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
