@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import {
   Box, Container, Typography, Button, Chip, Grid, Paper, Tab, Tabs,
-  CircularProgress, Alert, Breadcrumbs, Link, IconButton, Tooltip,
+  CircularProgress, Alert, Breadcrumbs, Link, Tooltip,
 } from '@mui/material';
-import { ArrowBack, Stop, Pause, PlayArrow, Person, AccessTime } from '@mui/icons-material';
+import { ArrowBack, Stop, Person, AccessTime, Mic } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { sessionAPI } from '../services/api';
 import { toast } from 'react-toastify';
@@ -24,7 +24,7 @@ const SessionPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [tabValue, setTabValue] = useState(0);
-  const [transcriptKey, setTranscriptKey] = useState(0); // force re-mount transcripts
+  const [transcriptKey, setTranscriptKey] = useState(0);
 
   useEffect(() => {
     sessionAPI.getById(id)
@@ -39,24 +39,32 @@ const SessionPage = () => {
       const res = await sessionAPI.end(id);
       setSession(res.data.session);
       toast.success('Session ended. You can now generate a summary.');
-      setTabValue(1); // Switch to transcripts
+      setTabValue(1);
     } catch (err) {
       toast.error(err.message);
     }
   };
 
-  const handleTranscriptCreated = (transcript) => {
+  const handleTranscriptCreated = () => {
     setTranscriptKey((k) => k + 1);
-    setTabValue(1); // Switch to transcripts tab
+    setTabValue(1);
   };
 
-  const formatDuration = (startedAt, endedAt) => {
-    const end = endedAt ? new Date(endedAt) : new Date();
-    const diff = Math.round((end - new Date(startedAt)) / 1000);
-    const m = Math.floor(diff / 60);
-    const s = diff % 60;
-    return `${m}m ${s}s`;
+  // ✅ FIXED: Use stored duration field, not live calculation
+  const formatDuration = (session) => {
+    if (session.duration) {
+      const m = Math.floor(session.duration / 60);
+      const s = session.duration % 60;
+      return `${m}m ${s}s`;
+    }
+    if (session.status === 'active') return 'Ongoing';
+    return '—';
   };
+
+  const formatDate = (d) => new Date(d).toLocaleDateString('en-IN', {
+    day: 'numeric', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
 
   if (loading) return (
     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -72,7 +80,6 @@ const SessionPage = () => {
 
   return (
     <Container maxWidth="xl" sx={{ py: 3 }}>
-      {/* Breadcrumbs */}
       <Breadcrumbs sx={{ mb: 2 }}>
         <Link href="/" underline="hover" color="inherit" onClick={(e) => { e.preventDefault(); navigate('/'); }}>
           Dashboard
@@ -105,8 +112,13 @@ const SessionPage = () => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <AccessTime fontSize="small" color="action" />
                 <Typography variant="body2" color="text.secondary">
-                  {formatDuration(session.startedAt, session.endedAt)}
-                  {!session.endedAt && ' (ongoing)'}
+                  {formatDate(session.startedAt)}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Mic fontSize="small" color="action" />
+                <Typography variant="body2" color="text.secondary">
+                  Duration: {formatDuration(session)}
                 </Typography>
               </Box>
             </Box>
@@ -130,20 +142,18 @@ const SessionPage = () => {
         </Box>
       </Paper>
 
-      {/* Recording (only for active sessions) */}
       {session.status === 'active' && (
         <Box sx={{ mb: 3 }}>
           <AudioRecorder sessionId={id} onTranscriptCreated={handleTranscriptCreated} />
         </Box>
       )}
 
-      {/* Tabs */}
       <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-        <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)} sx={{ borderBottom: '1px solid', borderColor: 'divider', px: 2 }}>
+        <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)}
+          sx={{ borderBottom: '1px solid', borderColor: 'divider', px: 2 }}>
           <Tab label="Transcripts" />
           <Tab label="AI Summary" />
         </Tabs>
-
         <Box sx={{ p: 3 }}>
           <TabPanel value={tabValue} index={0}>
             <TranscriptPanel key={transcriptKey} sessionId={id} />
