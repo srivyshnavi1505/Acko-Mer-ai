@@ -62,3 +62,17 @@ exports.updateProfile = catchAsync(async (req, res, next) => {
 exports.logout = catchAsync(async (req, res, next) => {
   res.status(200).json({ status: 'success', message: 'Logged out successfully.' });
 });
+
+
+exports.getPatients = catchAsync(async (req, res) => {
+  const { search } = req.query;
+  const query = { role: 'patient' };
+  if (search) {
+    query.$or = [
+      { name: { $regex: search, $options: 'i' } },
+      { email: { $regex: search, $options: 'i' } }
+    ];
+  }
+  const patients = await User.find(query).select('-password');
+  res.status(200).json({ status: 'success', data: { patients } });
+});
