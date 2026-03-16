@@ -163,7 +163,7 @@ acko-mer-ai/
 - [x] AI transcription (Groq Whisper)
 - [x] SOAP note generation (LLaMA 3.3)
 - [x] Dark mode
-- [ ] Patient Profile System
+- [x] Patient Profile System
 - [ ] Prescription PDF Generator
 - [ ] Speaker Diarization (Doctor vs Patient)
 - [ ] Medical Entity Extraction
