@@ -12,7 +12,6 @@ exports.generateSummary = catchAsync(async (req, res, next) => {
   const session = await Session.findById(req.params.sessionId);
   if (!session) return next(new AppError('Session not found.', 404));
 
-  // Get the latest completed transcript
   const transcript = await Transcript.findOne({
     sessionId: session._id,
     status: TRANSCRIPT_STATUS.COMPLETED,
@@ -32,7 +31,6 @@ exports.generateSummary = catchAsync(async (req, res, next) => {
       sessionId: session._id,
     });
 
-    // Upsert summary (update if exists, create if not)
     let summary = await Summary.findOne({ sessionId: session._id });
     if (summary) {
       summary.versions.push({ data: summary.toObject() });
@@ -47,11 +45,14 @@ exports.generateSummary = catchAsync(async (req, res, next) => {
       });
     }
 
-    // Mark session as having a summary
     await Session.findByIdAndUpdate(session._id, { hasSummary: true });
-    emitToSession(session._id.toString(), 'summary:generated', { summary });
 
-    res.status(200).json({ status: 'success', data: { summary } });
+    // ✅ FIX: Populate session so doctor/patient names are available
+    const populatedSummary = await Summary.findById(summary._id)
+      .populate('sessionId', 'doctorName patientName sessionType patientId');
+
+    emitToSession(session._id.toString(), 'summary:generated', { summary: populatedSummary });
+    res.status(200).json({ status: 'success', data: { summary: populatedSummary } });
   } catch (error) {
     logger.error('Summary generation error:', error.message);
     return next(new AppError(error.message, 500));
@@ -59,13 +60,16 @@ exports.generateSummary = catchAsync(async (req, res, next) => {
 });
 
 exports.getSummary = catchAsync(async (req, res, next) => {
-  const summary = await Summary.findById(req.params.id).populate('sessionId', 'doctorName patientName sessionType');
+  const summary = await Summary.findById(req.params.id)
+    .populate('sessionId', 'doctorName patientName sessionType patientId');
   if (!summary) return next(new AppError('Summary not found.', 404));
   res.status(200).json({ status: 'success', data: { summary } });
 });
 
+// ✅ FIX: Added populate here too
 exports.getSessionSummary = catchAsync(async (req, res, next) => {
-  const summary = await Summary.findOne({ sessionId: req.params.sessionId });
+  const summary = await Summary.findOne({ sessionId: req.params.sessionId })
+    .populate('sessionId', 'doctorName patientName sessionType patientId');
   if (!summary) return next(new AppError('No summary found for this session.', 404));
   res.status(200).json({ status: 'success', data: { summary } });
 });
@@ -78,11 +82,14 @@ exports.updateSummary = catchAsync(async (req, res, next) => {
   Object.assign(summary, req.body, { isEdited: true });
   await summary.save();
 
-  res.status(200).json({ status: 'success', data: { summary } });
+  const populated = await Summary.findById(summary._id)
+    .populate('sessionId', 'doctorName patientName sessionType patientId');
+  res.status(200).json({ status: 'success', data: { summary: populated } });
 });
 
 exports.exportSummary = catchAsync(async (req, res, next) => {
-  const summary = await Summary.findById(req.params.id).populate('sessionId');
+  const summary = await Summary.findById(req.params.id)
+    .populate('sessionId', 'doctorName patientName sessionType patientId');
   if (!summary) return next(new AppError('Summary not found.', 404));
 
   const { format = 'json' } = req.params;
@@ -93,10 +100,18 @@ exports.exportSummary = catchAsync(async (req, res, next) => {
     res.setHeader('Content-Disposition', `attachment; filename="summary_${summary._id}.json"`);
     return res.json({
       exportedAt: new Date().toISOString(),
-      session: { id: session._id, doctorName: session?.doctorName, patientName: session?.patientName },
+      session: {
+        id: session?._id,
+        doctorName: session?.doctorName,
+        patientName: session?.patientName,
+        patientId: session?.patientId,
+        sessionType: session?.sessionType,
+      },
       summary: {
+        template: summary.template,
         chiefComplaint: summary.chiefComplaint,
         historyOfPresentIllness: summary.historyOfPresentIllness,
+        pastMedicalHistory: summary.pastMedicalHistory,
         assessment: summary.assessment,
         plan: summary.plan,
         prescription: summary.prescription,
@@ -114,13 +129,13 @@ exports.exportSummary = catchAsync(async (req, res, next) => {
       `Patient: ${session?.patientName || 'N/A'}`,
       `Template: ${summary.template}`,
       '',
-      `CHIEF COMPLAINT:\n${summary.chiefComplaint}`,
-      `HISTORY OF PRESENT ILLNESS:\n${summary.historyOfPresentIllness}`,
-      `PAST MEDICAL HISTORY:\n${summary.pastMedicalHistory}`,
-      `ASSESSMENT:\n${summary.assessment}`,
-      `PLAN:\n${summary.plan}`,
-      `PRESCRIPTION:\n${summary.prescription}`,
-      `FOLLOW-UP:\n${summary.followUp}`,
+      `CHIEF COMPLAINT:\n${summary.chiefComplaint || 'N/A'}`,
+      `HISTORY OF PRESENT ILLNESS:\n${summary.historyOfPresentIllness || 'N/A'}`,
+      `PAST MEDICAL HISTORY:\n${summary.pastMedicalHistory || 'N/A'}`,
+      `ASSESSMENT:\n${summary.assessment || 'N/A'}`,
+      `PLAN:\n${summary.plan || 'N/A'}`,
+      `PRESCRIPTION:\n${summary.prescription || 'N/A'}`,
+      `FOLLOW-UP:\n${summary.followUp || 'N/A'}`,
       '',
       `ICD-10 CODES: ${summary.icdCodes?.map((c) => `${c.code} (${c.description})`).join(', ') || 'None'}`,
       `CPT CODES: ${summary.cptCodes?.map((c) => `${c.code} (${c.description})`).join(', ') || 'None'}`,

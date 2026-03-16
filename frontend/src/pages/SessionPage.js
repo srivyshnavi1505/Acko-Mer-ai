@@ -159,7 +159,7 @@ const SessionPage = () => {
             <TranscriptPanel key={transcriptKey} sessionId={id} />
           </TabPanel>
           <TabPanel value={tabValue} index={1}>
-            <SummaryPanel sessionId={id} />
+            <SummaryPanel sessionId={id} session={session} />
           </TabPanel>
         </Box>
       </Paper>
