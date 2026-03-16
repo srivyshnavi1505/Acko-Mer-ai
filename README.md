@@ -164,7 +164,7 @@ acko-mer-ai/
 - [x] SOAP note generation (LLaMA 3.3)
 - [x] Dark mode
 - [x] Patient Profile System
-- [ ] Prescription PDF Generator
+- [x] Prescription PDF Generator
 - [ ] Speaker Diarization (Doctor vs Patient)
 - [ ] Medical Entity Extraction
 - [ ] Analytics Dashboard
