@@ -39,7 +39,7 @@ const Navbar = () => {
           onClick={() => navigate('/')}>
           <LocalHospital sx={{ color: 'primary.main', fontSize: 28 }} />
           <Box>
-            <Typography variant="h6" fontWeight={800} color="primary.main" lineHeight={1.1}>
+            <Typography variant="h6" fontWeight={500}  color="primary.dark" lineHeight={1.1}>
               ACKO MER AI
             </Typography>
             <Typography variant="caption" color="text.secondary" lineHeight={1}>
