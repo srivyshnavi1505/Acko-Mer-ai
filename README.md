@@ -12,8 +12,8 @@ AI-powered medical encounter recording, transcription, and SOAP note generation 
 
 ### Prerequisites
 - Node.js v18+
-- MongoDB (running as service)
-- Redis (running as service)
+- MongoDB Atlas account — FREE at [mongodb.com/atlas](https://mongodb.com/atlas)
+- Upstash Redis account — FREE at [upstash.com](https://upstash.com)
 - **Groq API Key** — FREE at [console.groq.com](https://console.groq.com)
 
 ### 1. Configure Environment
@@ -22,7 +22,10 @@ cd backend
 copy .env.example .env
 ```
 
-Edit `backend/.env` and set your `GROQ_API_KEY`.
+Edit `backend/.env` and set your keys:
+- `GROQ_API_KEY` from [console.groq.com](https://console.groq.com)
+- `MONGO_URI` from your MongoDB Atlas cluster (Connect → Drivers → copy `mongodb+srv://...` URI)
+- `REDIS_URL` from your Upstash Redis database (copy the `rediss://...` URL)
 
 ### 2. Start Backend
 ```bash
@@ -69,8 +72,8 @@ Open http://localhost:3000, click **Register**, and create your doctor account.
 Frontend (React 18 + Material UI)
     ↓
 Backend API (Node.js + Express)
-    ├── MongoDB (sessions, transcripts, summaries)
-    ├── Redis (caching, rate limiting)
+    ├── MongoDB Atlas (sessions, transcripts, summaries)
+    ├── Upstash Redis (caching, rate limiting)
     └── Groq API
             ├── Whisper Large V3 (transcription)
             └── LLaMA 3.3-70B (SOAP notes & ICD codes)
@@ -112,8 +115,8 @@ GET    /api/summaries/:id/export/:format             Export (json/text)
 | Variable | Description | Required |
 |----------|-------------|----------|
 | `GROQ_API_KEY` | Groq API key from console.groq.com | ✅ Yes |
-| `MONGO_URI` | MongoDB connection string | ✅ Yes |
-| `REDIS_URL` | Redis connection URL | ✅ Yes |
+| `MONGO_URI` | MongoDB Atlas connection string (`mongodb+srv://...`) | ✅ Yes |
+| `REDIS_URL` | Upstash Redis URL (`rediss://...`) | ✅ Yes |
 | `JWT_SECRET` | Secret for JWT tokens (min 32 chars) | ✅ Yes |
 | `FRONTEND_URL` | Frontend URL for CORS | ✅ Yes |
 | `PORT` | Backend server port (default: 5000) | No |
@@ -174,8 +177,7 @@ acko-mer-ai/
 
 ## ⚠️ Important Notes
 
-
-- Medical data is sensitive — keep your repository **private** , the data thats currently being used is dummy data
+- Medical data is sensitive — keep your repository **private**, the data that's currently being used is dummy data
 - Groq free tier has rate limits — suitable for development and small clinics
 
 ---
