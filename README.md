@@ -159,6 +159,14 @@ acko-mer-ai/
 
 ---
 
+## 🔄 CI/CD
+Automatic deployments configured via:
+
+Frontend — Vercel (auto-deploys on every push to main)
+Backend — Render (auto-deploys on every push to main)
+
+---
+
 ## 📋 Roadmap
 
 - [x] Authentication & Multi-doctor support
